@@ -59,25 +59,24 @@
 
 ### `search_listings`
 
-- **What it does:**
-- **Inputs:** <!-- name and type each: `max_price` (float), not "a price" -->
-- **Returns:**
-- **When it has nothing:**
+**What it does:** Searches the secondhand listings dataset for items that match the user's description and optional size and maximum price filters, ranking the strongest keyword matches first.
+**Inputs:** `description` (str), `size` (str | None), `max_price` (float | None). Size matching is case-insensitive and matches complete size components rather than arbitrary substrings so, for example, `M` can match `S/M` without `S` incorrectly matching `US 9`.
+**Returns:** A list of matching listing dictionaries, ordered from highest keyword-overlap score to lowest, with at most `config.SEARCH_RESULT_LIMIT` results. Each dictionary contains the listing's `id`, `title`, `description`, `category`, `style_tags`, `size`, `condition`, `price`, `colors`, `brand`, and `platform`.
+**When it has nothing:** Returns an empty list `[]` when no listings satisfy the filters and description match.
 
 ### `suggest_outfit`
 
-- **What it does:**
-- **Inputs:**
-- **Returns:**
-- **When it has nothing:**
+**What it does:** Creates one or two outfit suggestions for the selected secondhand item using pieces from the user's existing wardrobe.
+**Inputs:** `new_item` (dict), containing the selected listing, and `wardrobe` (dict), containing an `items` list of clothing the user owns.
+**Returns:** A non-empty string containing outfit suggestions that incorporate the selected item and, when available, specific pieces from the user's wardrobe.
+**When it has nothing:** If the wardrobe's `items` list is empty, returns general styling advice for the selected item instead of returning an empty string or raising an error.
 
 ### `create_fit_card`
 
-- **What it does:**
-- **Inputs:**
-- **Returns:**
-- **When it has nothing:**
-
+**What it does:** Creates a short, social-media-style caption describing the selected thrifted item and the suggested outfit.
+**Inputs:** `outfit` (str), containing the suggestion returned by `suggest_outfit`, and `new_item` (dict), containing the selected listing.
+**Returns:** A two-to-four sentence caption that mentions the selected item, its price, its platform, and the outfit's overall vibe.
+**When it has nothing:** If `outfit` is empty or contains only whitespace, returns a descriptive message explaining that a fit card cannot be created without an outfit suggestion.
 ---
 
 ## Planning Loop
