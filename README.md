@@ -81,25 +81,13 @@
 
 ## Planning Loop
 
-<!-- Your branch rule, stated as a rule — the condition AND both paths — plus
-     the file and function that holds it.
-
-     Like this:
-       "If search_listings returns an empty list, put a message in the session
-        and stop. Otherwise take the first result and go to suggest_outfit."
-        — agent.py::run_agent
-
-     The grader checks your code against what you claim here, so the file and
-     function have to be real. -->
-
-**Branch rule:**
+**Branch rule:** If `search_listings` returns an empty list, the agent stores an error message telling the user to change the description, size, or maximum price and stops. Otherwise, it selects the first search result, passes it to `suggest_outfit`, and then passes the resulting outfit suggestion to `create_fit_card`.
 
 **Where it lives:** `agent.py::run_agent`
 
-**How the query is parsed:** <!-- regex, string splitting, or asking the model — say which -->
+**How the query is parsed:** The query is parsed using regular expressions and string cleanup. The parser extracts an explicitly stated size and maximum price, removes those phrases and common filler words from the query, and uses the remaining text as the listing description.
 
-**What moves through the session:** <!-- which fields, in what order -->
-
+**What moves through the session:** The original query is stored in `session["query"]`, followed by the parsed search values in `session["parsed"]`, the search results in `session["search_results"]`, the chosen listing in `session["selected_item"]`, the outfit returned by `suggest_outfit` in `session["outfit_suggestion"]`, and finally the generated caption in `session["fit_card"]`. Each tool reads the result of the previous step back from the session.
 ---
 
 ## Sample Run
