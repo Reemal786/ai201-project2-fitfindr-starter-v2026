@@ -39,9 +39,7 @@
 
 ## What This Does
 
-<!-- Three or four sentences: what a user asks for, and what they get back. -->
-
-
+FitFindr is a secondhand fashion assistant that helps users find clothing listings that match a natural-language request and style the selected item with pieces they already own. It parses the user's request for a clothing description, size, and maximum price, then searches and ranks matching secondhand listings. When a match is found, FitFindr selects an item, suggests one or two outfits using the user's wardrobe, and creates a short social-media-style fit card. If no listings match, the agent stops early and tells the user which search constraints they can change instead of continuing with the remaining tools.
 
 ---
 
@@ -92,57 +90,78 @@
 
 ## Sample Run
 
-<!-- Two things go here.
+### Full Query
 
-     1. One FULL query and its output, pasted as text.
-     2. Your three per-tool terminal tests — the command and what it printed. -->
+**Command:**
 
-**One full query**
-
-```
-$ python app.py ask '...'
-
+```text
+python app.py ask "vintage graphic tee under $30"
 ```
 
-**The three tools, tested one at a time**
+**Output:**
 
+```text
+Found:    Y2K Baby Tee — Butterfly Print — $18.0 on depop
+
+Outfit:   Here are two ways to style your new Y2K butterfly baby tee using pieces from your existing wardrobe:
+
+Outfit 1: Classic Y2K Streetwear
+- Bottoms: Baggy straight-leg jeans (dark wash)
+- Shoes: Chunky white sneakers
+- Accessories: Black crossbody bag
+- Why it works: The fitted crop of the baby tee balances out the baggy silhouette of the high-waisted dark denim for an authentic early-2000s look. Finish with your chunky sneakers and crossbody bag for an easy everyday outfit.
+
+Outfit 2: Edgy Contrast
+- Outerwear: Vintage black denim jacket
+- Bottoms: Wide-leg khaki trousers
+- Shoes: Black combat boots
+- Accessories: Brown leather belt
+- Why it works: Pairing the sweet, pastel butterfly graphic with your black combat boots and slightly cropped denim jacket adds a cool grunge contrast. Use the brown belt to tie the khaki trousers together and anchor the look.
+
+Fit card: Threw on my new Y2K baby tee with a butterfly print that I just scored on depop for eighteen dollars, and I'm honestly obsessed with how it looks. Paired it with my baggy dark wash jeans and chunky white sneakers for that classic early-2000s streetwear vibe. It's giving total nostalgic energy and is definitely about to be my go-to weekend fit!
+
+0 model calls this session, 2 served from cache
 ```
-$ python -c "from tools import search_listings; print(search_listings('graphic tee', max_price=30))"
 
+### Per-Tool Tests
+
+**1. `search_listings`**
+
+```text
+python -c "from tools import search_listings; print(search_listings('graphic tee', max_price=30))"
 ```
 
-```
-$ python -c "from tools import suggest_outfit; ..."
+The search returned matching secondhand listings including Y2K Baby Tee — Butterfly Print ($18), Graphic Tee — 2003 Tour Bootleg Style ($24), and Vintage Band Tee ($19). Every returned listing was at or below the $30 maximum price.
 
+**2. `suggest_outfit`**
+
+```text
+python -c "from tools import suggest_outfit; from utils.data_loader import get_example_wardrobe, load_listings; print(suggest_outfit(load_listings()[0], get_example_wardrobe()))"
 ```
 
-```
-$ python -c "from tools import create_fit_card; ..."
+The tool returned two outfit suggestions for the Vintage Levi's 501 Jeans and referenced specific pieces from the example wardrobe, including the white ribbed tank, vintage black denim jacket, chunky white sneakers, black crossbody bag, oversized grey crewneck, black combat boots, and brown leather belt.
 
+**3. `create_fit_card`**
+
+```text
+python -c "from tools import create_fit_card; from utils.data_loader import load_listings; print(create_fit_card('jeans and white sneakers', load_listings()[0]))"
+```
+
+```text
+Pulled these vintage Levi's 501 jeans out of my closet for a casual coffee run today, paired with crisp white sneakers for that effortlessly cool streetwear vibe. They have the best medium wash with lived-in fading at the knees that just can't be faked. Grabbed this exact pair on depop for $38.0 and I honestly haven't taken them off since.
 ```
 
 ---
 
 ## How I Used AI
 
-<!-- Two specific moments. What you asked, what came back, what you changed.
+### 1. Implementing and testing `search_listings`
 
-     "I used Claude to help me code" is not enough.
+I asked AI for help implementing `search_listings` based on the starter TODOs, especially how to filter by size without using unsafe substring matching. AI suggested separating listing sizes into components and checking for an exact size match, along with using keyword overlap to rank results. I kept the exact size-matching approach and tested the function with `"graphic tee"` and a $30 maximum price to confirm that relevant results were returned and every result respected the price limit.
 
-     "I gave Claude my search_listings spec. It returned None on no match
-     instead of an empty list, so I changed it" is the level we want. -->
+### 2. Handling edge cases in the generative tools
 
-**Moment 1**
-
-- *What I asked for:*
-- *What came back:*
-- *What I changed:*
-
-**Moment 2**
-
-- *What I asked for:*
-- *What came back:*
-- *What I changed:*
+I asked AI for help implementing and testing `suggest_outfit` and `create_fit_card`, including what should happen when the wardrobe or outfit input is empty. AI suggested explicitly handling those cases before making unnecessary model calls: `suggest_outfit` provides general styling advice when the wardrobe is empty, while `create_fit_card` returns an explanatory message when no outfit is provided. I kept these guards and tested both the normal and empty-input paths before connecting the tools through the planning loop.
 
 <!-- ═══════════════════════ UNIT 4 — THE TEST ═══════════════════════
 
