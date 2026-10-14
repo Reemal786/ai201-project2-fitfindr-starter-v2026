@@ -243,14 +243,47 @@ that produced it:
      anyone will ever find that out. -->
 
 **Happy path**
-
 ```
+[1] parse_query
+      in:  vintage graphic tee under $30
+      out: dict with keys: description, size, max_price
+
+[2] search_listings (via MCP)
+      in:  dict with keys: description, size, max_price
+      out: 10 items: Y2K Baby Tee — Butterfly Print, Graphic Tee — 2003 Tour Bootleg Style, Vintage Band Tee — Faded Grey … +7 more
+
+[3] select_item
+      out: Y2K Baby Tee — Butterfly Print ($18.0, depop)
+      →    selected first matching listing
+
+[4] suggest_outfit
+      in:  dict with keys: item, wardrobe
+      out: Here are two ways to style your new Y2K butterfly baby tee using pieces from your existing wardrobe:  **Outfit…
+
+[5] create_fit_card
+      in:  dict with keys: outfit, item
+      out: Threw on my new Y2K baby tee with a butterfly print that I just scored on depop for eighteen dollars, and I'm …
+
 
 ```
 
 **Empty search**
 
 ```
+[1] parse_query
+      in:  designer ballgown size XXS under $5
+      out: dict with keys: description, size, max_price
+
+[2] search_listings (via MCP)
+      in:  dict with keys: description, size, max_price
+      out: [] (empty)
+
+[3] search_results_check
+      out: [] (empty)
+      →    branch: empty search, stopping
+
+  stopped: No matching listings were found. Try changing the description, using a different size, or increasing your maximum price.
+  fit_card: None
 
 ```
 
@@ -258,7 +291,13 @@ that produced it:
 behaved differently afterwards. If the rewire didn't work, say exactly where it
 broke — the error text and the last thing that worked. That earns the point in
 full. -->
+I moved search_listings from a direct Python function call in agent.py to an MCP tool registered in mcp_server.py using the @mcp.tool() decorator. I updated the agent to call the tool through mcp_client.py while preserving the existing query parsing, session state, and planning loop.
 
+After the integration, I verified that the MCP client discovered the registered tool and that the agent continued returning matching listings, outfit suggestions, and fit cards. The empty-search branch also continued functioning correctly.
+
+I added trace.step() calls to record each stage of execution and explicitly labeled the search operation as search_listings (via MCP) to distinguish it from the remaining local tool calls. I also added error handling for MCP connection failures and model unavailability.
+
+The MCP integration did not introduce any observed failures during the tested workflows.
 
 
 ---
