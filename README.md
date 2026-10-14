@@ -186,7 +186,7 @@ I asked AI for help implementing and testing `suggest_outfit` and `create_fit_ca
 | 1. Complete workflow | 4/5 | FAIL | FAIL | FAIL | PASS | FAIL | MISSED (1/5) |
 | 2. Empty search stops early | 5/5 | PASS | PASS | PASS | PASS | PASS | MET (5/5) |
 | 3. Selected item ID matches outfit input | 5/5 | — | — | — | — | — | NOT FULLY VERIFIED |
-| 4. Fit card includes item and price | 4/5 | PASS | PASS | PASS | PASS | FAIL | MET (4/5) |
+| 4. Fit card includes item and price | 4/5 | PASS | FAIL | PASS | PASS | PASS | MET (4/5) |
 | 5. Search respects maximum price | 5/5 | PASS | PASS | PASS | PASS | PASS | MET (5/5) |
 
 **Real output from one try**, pasted as text, naming the file and function
@@ -349,24 +349,26 @@ The MCP integration did not introduce any observed failures during the tested wo
      `python run_eval.py --label after` -->
 
 **What I changed:**
+Updated generate.py to retry temporary 503 UNAVAILABLE errors using the existing exponential backoff mechanism. Previously, only 429 rate-limit errors triggered retries, while 503 errors immediately stopped the workflow. I also updated the error handling to avoid unnecessary waiting after the final attempt and raise ModelUnavailable if all retries fail.
 
 **Which failure it was meant to fix:**
+Criterion 1 missed its 4/5 completion target because temporary Gemini 503 UNAVAILABLE responses stopped the workflow during outfit suggestion or fit-card generation.
 
 ### Run Log — After
 
 | Criterion | Target | Try 1 | Try 2 | Try 3 | Try 4 | Try 5 | Verdict |
 |---|---|---|---|---|---|---|---|
-| 1.  |  |  |  |  |  |  |  |
-| 2.  |  |  |  |  |  |  |  |
-| 3.  |  |  |  |  |  |  |  |
-| 4.  |  |  |  |  |  |  |  |
-| 5.  |  |  |  |  |  |  |  |
+| 1. Complete workflow | 4/5 | PASS | PASS | PASS | PASS | PASS | MET (5/5) |
+| 2. Empty search stops early | 5/5 | PASS | PASS | PASS | PASS | PASS | MET (5/5) |
+| 3. Selected item ID matches outfit input | 5/5 | — | — | — | — | — | NOT FULLY VERIFIED |
+| 4. Fit card includes item and price | 4/5 | PASS | PASS | PASS | PASS | PASS | MET (5/5) |
+| 5. Search respects maximum price | 5/5 | PASS | PASS | PASS | PASS | PASS | MET (5/5) |
 
 **Did it help, and how do I know:**
 
 <!-- If it made things worse, say that. Honestly reported, that earns full
      credit and is more interesting than one that worked. -->
-
+The after-evaluation completed all five Criterion 1 trials, compared with one of five during the baseline. Criterion 4 also improved from four to five successful trials. A separate mocked test confirmed that the updated retry mechanism successfully recovered from a simulated 503 error on the second attempt. The after-evaluation encountered no actual 503 errors, so the improved completion rate cannot be conclusively attributed to the code change alone.
 
 
 ---
