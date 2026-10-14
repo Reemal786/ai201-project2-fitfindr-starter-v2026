@@ -379,7 +379,13 @@ The after-evaluation completed all five Criterion 1 trials, compared with one of
      you did. "I ran out of time" is fine if it's true. Pretending nothing is
      left is not. -->
 
+The main remaining limitation is Criterion 3: selected item ID consistency. Although an independent mocked test confirmed that the selected item's ID matched the item passed to `suggest_outfit`, the evaluation logs did not record the IDs across all five trials. Therefore, this criterion remains not fully verified.
 
+To address this, I would add an assertion comparing `session["selected_item"]["id"]` with the `new_item["id"]` passed to `suggest_outfit` during each evaluation trial. This would provide direct evidence that the agent consistently passes the correct item between steps.
+
+The updated retry mechanism also has a limitation: although it successfully recovered from a simulated 503 error, the after-evaluation did not encounter a real 503 error. Further testing under actual service interruptions would help confirm its reliability.
+
+I stopped after implementing and testing one targeted improvement, as required for this milestone, rather than introducing additional changes without another evaluation cycle.
 
 <!-- ═════════════════════════════════════════════════════════════════════
 
