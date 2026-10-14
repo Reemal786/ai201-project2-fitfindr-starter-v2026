@@ -183,17 +183,39 @@ I asked AI for help implementing and testing `suggest_outfit` and `create_fit_ca
 
 | Criterion | Target | Try 1 | Try 2 | Try 3 | Try 4 | Try 5 | Verdict |
 |---|---|---|---|---|---|---|---|
-| 1.  |  |  |  |  |  |  |  |
-| 2.  |  |  |  |  |  |  |  |
-| 3.  |  |  |  |  |  |  |  |
-| 4.  |  |  |  |  |  |  |  |
-| 5.  |  |  |  |  |  |  |  |
+| 1. Complete workflow | 4/5 | FAIL | FAIL | FAIL | PASS | FAIL | MISSED (1/5) |
+| 2. Empty search stops early | 5/5 | PASS | PASS | PASS | PASS | PASS | MET (5/5) |
+| 3. Selected item ID matches outfit input | 5/5 | — | — | — | — | — | NOT FULLY VERIFIED |
+| 4. Fit card includes item and price | 4/5 | PASS | PASS | PASS | PASS | FAIL | MET (4/5) |
+| 5. Search respects maximum price | 5/5 | PASS | PASS | PASS | PASS | PASS | MET (5/5) |
 
 **Real output from one try**, pasted as text, naming the file and function
 that produced it:
 
 ```
+Source: results/run_2026-10-13_2228_before.md
+Function: agent.py::run_agent
 
+matching query completes  (example wardrobe)
+  query: vintage graphic tee under $30
+
+[1] parse_query
+      in:  vintage graphic tee under $30
+      out: dict with keys: description, size, max_price
+
+[2] search_listings (via MCP)
+      in:  dict with keys: description, size, max_price
+      out: 10 items: Y2K Baby Tee — Butterfly Print, Graphic Tee — 2003 Tour Bootleg Style, Vintage Band Tee — Faded Grey … +7 more
+
+[3] select_item
+      out: Y2K Baby Tee — Butterfly Print ($18.0, depop)
+      →    selected first matching listing
+
+[4] suggest_outfit
+      out: Couldn't reach the model: 503 UNAVAILABLE. {'error': {'code': 503, 'message': 'This model is currently experie…
+      →    model unavailable: stopping
+
+  try 1: stopped early — Outfit suggestions are temporarily unavailable. Check your m
 ```
 
 ---
@@ -218,13 +240,30 @@ that produced it:
 
 | # | Criterion | Target | Verdict | How I decided |
 |---|---|---|---|---|
-| 1 |  |  |  |  |
-| 2 |  |  |  |  |
-| 3 |  |  |  |  |
-| 4 |  |  |  |  |
-| 5 |  |  |  |  |
+| 1 | Complete workflow | 4/5 | MISSED (1/5) | Four runs stopped after Gemini returned 503 UNAVAILABLE during outfit or fit-card generation. |
+| 2 | Empty search stops early | 5/5 | MET (5/5) | All five runs stopped before outfit generation and returned an actionable message. |
+| 3 | Selected item ID matches outfit input | 5/5 | NOT FULLY VERIFIED | One independent mocked test confirmed matching IDs, but five trials were not recorded. |
+| 4 | Fit card includes item and price | 4/5 | MET (4/5) | Four generated fit cards included the selected item and price; one trial encountered a model error. |
+| 5 | Search respects maximum price | 5/5 | MET (5/5) | All returned listings in the five search trials respected the $50 limit. |
 
 **Diagnoses**
+### Criterion 1 — Model Service Unavailability
+
+Criterion 1 missed its target of 4/5 successful runs,
+completing only 1/5. All five attempts successfully
+parsed the query, retrieved listings through MCP,
+and selected an item.
+
+Four attempts stopped during outfit suggestion or
+fit-card generation because the Gemini API returned
+503 UNAVAILABLE.
+
+Reviewing generate.py revealed that its retry mechanism
+handles 429 rate-limit errors but immediately raises
+ModelUnavailable for 503 errors.
+
+This prevents the agent from retrying potentially
+temporary service interruptions.
 
 
 
